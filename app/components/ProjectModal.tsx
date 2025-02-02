@@ -14,10 +14,10 @@ export function ProjectModal({ project, onClose }: ProjectModalProps) {
     <div className="fixed inset-0 bg-black/95 z-50 flex items-center justify-center p-4">
       <div className="max-w-4xl w-full bg-neutral-900 rounded-lg overflow-hidden">
         <div className="relative">
-          {project.youtube_id ? (
+          {project.video_url ? (
             <div className="aspect-video">
               <iframe
-                src={`https://www.youtube.com/embed/${project.youtube_id}`}
+                src={project.video_url}
                 title={project.title}
                 className="w-full h-full"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"

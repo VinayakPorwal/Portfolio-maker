@@ -288,7 +288,7 @@ export function Portfolio({ projects, profile, skills, services, reviews }: { pr
       )}
 
       {showReelOpen && (
-        <ShowreelModal onClose={() => setShowReelOpen(false)} />
+        <ShowreelModal onClose={() => setShowReelOpen(false)} url={profile.showreel_url || ''} />
       )}
 
 
