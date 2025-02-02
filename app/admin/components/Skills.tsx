@@ -17,7 +17,6 @@ export function SkillsManagement({
   onAdd: (newSkill: Partial<Database['public']['Tables']['skills']['Insert']>) => Promise<void>
   onDelete: (skillId: string) => Promise<void>
 }) {
-  const [editingSkill, setEditingSkill] = useState<Database['public']['Tables']['skills']['Row'] | null>(null)
   const [newSkill, setNewSkill] = useState<Partial<Database['public']['Tables']['skills']['Insert']>>({ name: '', level: 50, tools: [], icon: '' })
 
   const handleAdd = () => {
@@ -41,6 +40,7 @@ export function SkillsManagement({
       error: 'Failed to delete skill.'
     })
   }
+  console.log(skills)
   return (
     <div className="space-y-4 max-w-6xl mx-auto">
       <div className="flex justify-between items-center mb-4">
@@ -80,7 +80,7 @@ export function SkillsManagement({
               value={newSkill.level}
               onChange={(e) => setNewSkill({ ...newSkill, level: Number(e.target.value) })}
             />
-            <Button 
+            <Button
               className="w-full bg-blue-600 hover:bg-blue-700"
               onClick={handleAdd}
             >
@@ -95,21 +95,17 @@ export function SkillsManagement({
           <div>
             <h3 className="font-bold">{skill.name}</h3>
             <p className="text-gray-400">Level: {skill.level}%</p>
+            {skill.tools?.length > 0 &&
+              <p className="text-gray-400 gap-2">Tools: {skill.tools.map((tool, index) => (
+                tool.trim() &&
+                <span key={index} className="bg-blue-900/50 px-2 py-1 rounded text-sm mr-2">
+                  {tool}
+                </span>
+              ))}
+              </p>}
           </div>
           <div className="flex gap-2">
-            <DataModal
-              title="Edit Skill"
-              triggerText="Edit"
-              triggerIcon={<Edit2 className="w-4 h-4" />}
-            >
-                <div>
-                    <input type="text" placeholder="Skill Name" value={skill.name} />
-                    <input type="text" placeholder="Skill Icon" value={skill.icon} />
-                    <input type="text" placeholder="Skill Tools" value={skill.tools?.join(', ') || ''} />
-                    <input type="number" placeholder="Skill Level" value={skill.level} />
-                </div>
-              {/* Edit form similar to add form */}
-            </DataModal>
+            <EditSkillModal skill={skill} onUpdate={handleUpdate} />
             <Button variant="destructive" size="sm" onClick={() => handleDelete(skill.id)}>
               <Trash2 className="w-4 h-4" />
             </Button>
@@ -119,3 +115,57 @@ export function SkillsManagement({
     </div>
   )
 }
+
+
+const EditSkillModal = ({ skill, onUpdate }: { skill: Database['public']['Tables']['skills']['Row'], onUpdate: (skillId: string, updates: Partial<Database['public']['Tables']['skills']['Row']>) => Promise<void> }) => {
+  const [editingSkill, setEditingSkill] = useState<Database['public']['Tables']['skills']['Row']>({
+    id: skill.id,
+    name: skill.name,
+    level: skill.level,
+    tools: skill.tools,
+    icon: skill.icon
+  })
+
+  return (
+    <DataModal
+      title="Edit Skill"
+      triggerText="Edit"
+      triggerIcon={<Edit2 className="w-4 h-4" />}
+    >
+      <div className="grid grid-cols-2 gap-2 *:p-2" >
+        <input type="text" placeholder="Skill Name" value={editingSkill?.name || ''}
+          onChange={(e) => setEditingSkill({ ...editingSkill, name: e.target.value })} />
+
+        <input type="text" placeholder="Skill Icon" value={editingSkill?.icon || ''}
+          onChange={(e) => setEditingSkill({ ...editingSkill, icon: e.target.value })} />
+
+        <div className="flex gap-2">
+          <input
+            className="w-full p-2"
+            type="text"
+            placeholder="Skill Tools (comma-separated)"
+            value={editingSkill?.tools?.join(", ") || ""}
+            onChange={(e) =>
+              setEditingSkill({
+                ...editingSkill,
+                tools: e.target.value.split(",").map((item) => item.trim()),
+              })
+            }
+          />
+          <button
+            onClick={() => setEditingSkill({ ...editingSkill, tools: [] })}
+          >
+            Clear
+          </button>
+        </div>
+
+        <input type="number" placeholder="Skill Level" value={editingSkill?.level}
+          onChange={(e) => setEditingSkill({ ...editingSkill, level: Number(e.target.value) })} />
+
+      </div>
+      <Button onClick={() => onUpdate(skill.id, { name: editingSkill?.name || '', icon: editingSkill?.icon || '', tools: editingSkill?.tools || [], level: editingSkill?.level || 0 })}>
+        Save
+      </Button>
+    </DataModal>
+  )
+} 

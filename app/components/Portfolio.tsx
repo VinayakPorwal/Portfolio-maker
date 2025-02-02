@@ -1,11 +1,9 @@
 "use client"
 import React, { useState } from 'react';
-import { Play, Film, Box, Wand2, Mail, Github, Linkedin, Video, Instagram, ChevronRight, Star, Download, DownloadCloud, FileDown } from 'lucide-react';
-import { useProjects } from '@/hooks/useProjects';
+import { Play, Film, Box, Wand2, Mail, Github, Linkedin, Video, Instagram, ChevronRight, Star, Download, DownloadCloud, FileDown, Sparkles } from 'lucide-react';
 import { ProjectModal } from '@/app/components/ProjectModal';
 import { ShowreelModal } from '@/app/components/ShowreelModal';
 import { ContactForm } from '@/app/components/ContactForm';
-import { fetchPortfolioData } from '@/app/actions';
 import type { Database } from '@/lib/database.types';
 
 type Project = Database['public']['Tables']['projects']['Row'];
@@ -66,6 +64,19 @@ export function Portfolio({ projects, profile, skills, services, reviews }: { pr
     }
   };
 
+
+
+  const getIcon = (iconName : string) => {
+    const icons = {
+      Video: Video,
+      Box: Box,
+      Wand2: Wand2,
+      Film: Film,
+    };
+  
+    const IconComponent = icons[iconName as keyof typeof icons] || Sparkles; // Default to HelpCircle if no match
+    return <IconComponent className="w-6 h-6" /> ;
+  };
   return (
     <div className="min-h-screen bg-black text-white">
       {/* Hero Section */}
@@ -171,10 +182,7 @@ export function Portfolio({ projects, profile, skills, services, reviews }: { pr
             {skills.map((skill, index) => (
               <div key={index} className="bg-black/50 p-6 rounded-lg backdrop-blur-sm">
                 <div className="flex items-center mb-4">
-                  {skill.icon === "Video" && <Video className="w-6 h-6" />}
-                  {skill.icon === "Box" && <Box className="w-6 h-6" />}
-                  {skill.icon === "Wand2" && <Wand2 className="w-6 h-6" />}
-                  {skill.icon === "Film" && <Film className="w-6 h-6" />}
+                {getIcon(skill.icon)}
                   <h3 className="text-xl font-semibold ml-2">{skill.name}</h3>
                 </div>
                 <div className="w-full bg-white/10 rounded-full h-1 mb-4">
@@ -185,6 +193,7 @@ export function Portfolio({ projects, profile, skills, services, reviews }: { pr
                 </div>
                 <div className="flex flex-wrap gap-2 mt-4">
                   {skill.tools.map((tool, toolIndex) => (
+                    tool.trim() &&
                     <span key={toolIndex} className="text-xs bg-white/5 px-2 py-1 rounded">
                       {tool}
                     </span>
@@ -228,7 +237,11 @@ export function Portfolio({ projects, profile, skills, services, reviews }: { pr
               <div key={review.id} className="bg-black/50 p-8 rounded-lg backdrop-blur-sm">
                 <div className="flex items-center mb-6">
                   <img
-                    src={review.avatar}
+                    src={review.avatar ||
+                      review.gender === 'MALE' 
+                      ? 'https://avatar.iran.liara.run/public/boy' 
+                      : 'https://avatar.iran.liara.run/public/girl'
+                    }
                     alt={review.name}
                     className="w-12 h-12 rounded-full object-cover mr-4"
                   />
@@ -301,7 +314,7 @@ export function Portfolio({ projects, profile, skills, services, reviews }: { pr
           href={profile.cv_url || '#'} 
           className="w-full h-full flex items-center justify-center bg-blue-500 hover:bg-blue-600 text-white cursor-pointer"
         >
-          <FileDown className="w-10 h-10 m-4 animate-bounce hover:animate-none" />
+          <FileDown className="w-6 h-6 sm:w-10 sm:h-10 m-2 sm:m-4 animate-bounce hover:animate-none" />
         </a>
       </div>
     </div>

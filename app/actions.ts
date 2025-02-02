@@ -258,6 +258,7 @@ export async function deleteProject(id: string) {
     const { error } = await supabase.from("projects").delete().eq("id", id);
 
     if (error) throw error;
+    revalidatePath('/admin')
   } catch (err) {
     throw err;
   }

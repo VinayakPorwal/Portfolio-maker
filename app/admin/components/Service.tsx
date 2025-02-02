@@ -17,7 +17,6 @@ export function ServicesManagement({
     onUpdate: (serviceId: string, updates: Partial<Database['public']['Tables']['services']['Row']>) => Promise<void>
     onDelete: (serviceId: string) => Promise<void>
 }) {
-    const [editingService, setEditingService] = useState<Database['public']['Tables']['services']['Row'] | null>(null)
     const [newService, setNewService] = useState<Partial<Database['public']['Tables']['services']['Row']>>({
         name: '',
         description: '',
@@ -92,42 +91,13 @@ export function ServicesManagement({
                         <p className="text-gray-400">{service.description}</p>
                         <ul className="mt-2 space-y-1">
                             {service.deliverables?.map((deliverable, index) => (
+                                deliverable.trim() &&
                                 <li key={index} className="text-sm text-gray-300">• {deliverable}</li>
                             ))}
                         </ul>
                     </div>
                     <div className="flex gap-2">
-                        <DataModal
-                            title="Edit Service"
-                            triggerText="Edit"
-                            triggerIcon={<Edit2 className="w-4 h-4" />}
-                        >
-                            <div className="space-y-4">
-                                <input
-                                    type="text" placeholder="Title"
-                                    className="w-full p-2 bg-gray-800 rounded text-white"
-                                    value={newService.name}
-                                    onChange={(e) => setNewService({ ...newService, name: e.target.value })} />
-                                <textarea
-                                    placeholder="Description"
-                                    className="w-full p-2 bg-gray-800 rounded text-white" value={newService.description || ''}
-                                    onChange={(e) => setNewService({ ...newService, description: e.target.value })} rows={4} />
-                                <input
-                                    type="text"
-                                    placeholder="Deliverables (comma-separated)"
-                                    className="w-full p-2 bg-gray-800 rounded text-white"
-                                    value={newService.deliverables?.join(', ')}
-                                    onChange={(e) => setNewService({ ...newService, deliverables: e.target.value.split(',').map(item => item.trim()) })} />
-                                <Button className="w-full bg-blue-600 hover:bg-blue-700" onClick={() => {
-                                    onAdd(newService)
-                                    setNewService({
-                                        name: '',
-                                        description: '',
-                                        deliverables: [],
-                                    })
-                                }}>Save Service</Button>
-                            </div>
-                        </DataModal>
+                        <EditServiceModal service={service} onUpdate={handleUpdate} />
                         <Button variant="destructive" size="sm" onClick={() => handleDelete(service.id)}>
                             <Trash2 className="w-4 h-4" />
                         </Button>
@@ -135,5 +105,60 @@ export function ServicesManagement({
                 </div>
             ))}
         </div>
+    )
+}
+
+const EditServiceModal = ({ service, onUpdate }: { service: Database['public']['Tables']['services']['Row'], onUpdate: (serviceId: string, updates: Partial<Database['public']['Tables']['services']['Row']>) => Promise<void> }) => {
+    const [editingService, setEditingService] = useState<Partial<Database['public']['Tables']['services']['Update']> | null>({
+        id: service.id,
+        name: service.name,
+        description: service.description,
+        deliverables: service.deliverables,
+    })
+
+    return (
+        <DataModal
+            title="Edit Service"
+            triggerText="Edit"
+            triggerIcon={<Edit2 className="w-4 h-4" />}
+        >
+            <div className="flex flex-col gap-2 *:p-2">
+                <input
+                    type="text" placeholder="Title"
+
+                    value={editingService?.name}
+                    onChange={(e) => setEditingService({ ...editingService, name: e.target.value })} />
+                <textarea
+                    placeholder="Description"
+                    value={editingService?.description || ''}
+                    onChange={(e) => setEditingService({ ...editingService, description: e.target.value })} rows={4} />
+
+                <div className="flex gap-2">
+                    <input
+                        className="w-full p-2"
+                        type="text"
+                        placeholder="Deliverables (comma-separated)"
+                        value={editingService?.deliverables?.join(', ')}
+
+                        onChange={(e) =>
+                            setEditingService({
+                                ...editingService,
+                                deliverables: e.target.value.split(",").map((item) => item.trim()),
+                            })
+                        }
+                    />
+                    <button
+                        onClick={() => setEditingService({ ...editingService, deliverables: [] })}
+                    >
+                        Clear
+                    </button>
+                </div>
+
+            </div>
+            <Button onClick={() => {
+                onUpdate(service.id, { name: editingService?.name || '', description: editingService?.description || '', deliverables: editingService?.deliverables || [] })
+
+            }}>Save Service</Button>
+        </DataModal>
     )
 }

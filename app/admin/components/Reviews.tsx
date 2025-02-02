@@ -17,13 +17,13 @@ export function ReviewsManagement({
   onUpdate: (reviewId: string, updates: Partial<Database['public']['Tables']['reviews']['Update']>) => Promise<void>
   onDelete: (reviewId: string) => Promise<void>
 }) {
-  const [editingReview, setEditingReview] = useState<Database['public']['Tables']['reviews']['Row'] | null>(null)
   const [newReview, setNewReview] = useState<Partial<Database['public']['Tables']['reviews']['Insert']>>({
     name: '',
     company: '',
     review: '',
     rating: 5,
     avatar: '',
+    gender: 'MALE',
   })
 
   const handleAdd = () => {
@@ -35,6 +35,7 @@ export function ReviewsManagement({
     setNewReview({
       name: '',
       company: '',
+      gender: 'MALE',
       review: '',
       rating: 5,
       avatar: '',
@@ -85,6 +86,12 @@ export function ReviewsManagement({
               value={newReview.avatar}
               onChange={(e) => setNewReview({ ...newReview, avatar: e.target.value })}
             />
+            <select value={newReview.gender}
+              onChange={(e) => setNewReview({ ...newReview, gender: e.target.value as 'MALE' | 'FEMALE' | 'OTHER' })}>
+              <option value="MALE">Male</option>
+              <option value="FEMALE">Female</option>
+              <option value="OTHER">Other</option>
+            </select>
             <textarea
               placeholder="Review"
               className="w-full p-2 bg-gray-800 rounded text-white"
@@ -101,7 +108,7 @@ export function ReviewsManagement({
               min={1}
               max={5}
             />
-            <Button 
+            <Button
               className="w-full bg-blue-600 hover:bg-blue-700"
               onClick={handleAdd}
             >
@@ -112,10 +119,13 @@ export function ReviewsManagement({
       </div>
 
       {reviews.map((review) => (
-        <div key={review.id} className="bg-neutral-900 p-4 rounded-lg flex justify-between items-center">
+        <div key={review.id} className="bg-neutral-900 p-4 rounded-lg flex justify-between items-center mb-4">
           <div className="flex items-center gap-4">
             <img
-              src={review.avatar}
+              src={review.avatar ||
+                review.gender === 'MALE'
+                ? 'https://avatar.iran.liara.run/public/boy'
+                : 'https://avatar.iran.liara.run/public/girl'}
               alt={review.name}
               className="w-12 h-12 rounded-full"
             />
@@ -131,20 +141,7 @@ export function ReviewsManagement({
             </div>
           </div>
           <div className="flex gap-2">
-            <DataModal
-              title="Edit Review"
-              triggerText="Edit"
-              triggerIcon={<Edit2 className="w-4 h-4" />}
-            >
-                <div>
-                    <input type="text" placeholder="Name" value={review.name} onChange={(e) => setEditingReview({ ...review, name: e.target.value })} />
-                    <input type="text" placeholder="Company" value={review.company} onChange={(e) => setEditingReview({ ...review, company: e.target.value })} />
-                    <input type="text" placeholder="Avatar URL" value={review.avatar} onChange={(e) => setEditingReview({ ...review, avatar: e.target.value })} />
-                    <textarea placeholder="Review" value={review.review} onChange={(e) => setEditingReview({ ...review, review: e.target.value })} rows={4} />
-                    <input type="number" placeholder="Rating (1-5)" value={review.rating} onChange={(e) => setEditingReview({ ...review, rating: Number(e.target.value) })} min={1} max={5} />
-                </div>
-              {/* Edit form similar to add form */}
-            </DataModal>
+            <EditReviewModal review={review} onUpdate={handleUpdate} />
             <Button variant="destructive" size="sm" onClick={() => handleDelete(review.id)}>
               <Trash2 className="w-4 h-4" />
             </Button>
@@ -152,5 +149,65 @@ export function ReviewsManagement({
         </div>
       ))}
     </div>
+  )
+}
+
+
+const EditReviewModal = ({ review, onUpdate }: { review: Database['public']['Tables']['reviews']['Row'], onUpdate: (reviewId: string, updates: Partial<Database['public']['Tables']['reviews']['Update']>) => Promise<void> }) => {
+  const [editingReview, setEditingReview] = useState<Database['public']['Tables']['reviews']['Update'] | null>({
+    id: review.id,
+    name: review.name,
+    company: review.company,
+    avatar: review.avatar,
+    gender: review.gender,
+    review: review.review,
+    rating: review.rating,
+  })
+
+  return (
+    <DataModal
+      title="Edit Review"
+      triggerText="Edit"
+      triggerIcon={<Edit2 className="w-4 h-4" />}
+    >
+      <div className="flex flex-col gap-2 *:p-2">
+        <input
+          type="text"
+          placeholder="Name"
+          value={editingReview?.name}
+          onChange={(e) => setEditingReview({ ...editingReview, name: e.target.value })} />
+        <input
+          type="text"
+          placeholder="Company"
+          value={editingReview?.company}
+          onChange={(e) => setEditingReview({ ...editingReview, company: e.target.value })} />
+        <input
+          type="text"
+          placeholder="Avatar URL"
+          value={editingReview?.avatar}
+          onChange={(e) => setEditingReview({ ...editingReview, avatar: e.target.value })} />
+        <textarea
+          placeholder="Review"
+          value={editingReview?.review}
+          onChange={(e) => setEditingReview({ ...editingReview, review: e.target.value })} 
+          rows={4} />
+        <select
+          value={editingReview?.gender}
+          onChange={(e) => setEditingReview({ ...editingReview, gender: e.target.value })}>
+          <option value="MALE">Male</option>
+          <option value="FEMALE">Female</option>
+          <option value="OTHER">Other</option>
+        </select>
+        <input
+          type="number"
+          placeholder="Rating (1-5)"
+          value={editingReview?.rating}
+          onChange={(e) => setEditingReview({ ...editingReview, rating: Number(e.target.value) })}
+          min={1} max={5} />
+      </div>
+      <Button onClick={() => onUpdate(review.id, { name: editingReview?.name || '', company: editingReview?.company || '', avatar: editingReview?.avatar || '', review: editingReview?.review || '', rating: editingReview?.rating || 0 })}>
+        Save
+      </Button>
+    </DataModal>
   )
 }

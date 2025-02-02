@@ -97,6 +97,7 @@ export interface Database {
           name: string
           company: string
           avatar: string
+          gender: string
           review: string
           rating: number
         }
@@ -105,6 +106,7 @@ export interface Database {
           name: string
           company: string
           avatar: string
+          gender: string
           review: string
           rating: number
         }
@@ -115,6 +117,7 @@ export interface Database {
           avatar?: string
           review?: string
           rating?: number
+          gender?: string
         }
       }
       services: {
